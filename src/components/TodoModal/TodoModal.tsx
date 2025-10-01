@@ -36,6 +36,7 @@ export const TodoModal: React.FC<TodoModalProps> = ({
   const [description, setDescription] = useState('');
   const [completed, setCompleted] = useState(false);
   const [titleError, setTitleError] = useState('');
+  const [dueDate, setDueDate] = useState<string | undefined>(undefined);
 
   // Reset form or load values when modal opens
   useEffect(() => {
@@ -44,10 +45,13 @@ export const TodoModal: React.FC<TodoModalProps> = ({
         setTitle(initialValues.title);
         setDescription(initialValues.description);
         setCompleted(initialValues.completed);
+        // initialValues may not include dueDate; keep undefined if missing
+        setDueDate((initialValues as { dueDate?: string }).dueDate);
       } else {
         setTitle('');
         setDescription('');
         setCompleted(false);
+        setDueDate(undefined);
       }
       setTitleError('');
     }
@@ -67,12 +71,22 @@ export const TodoModal: React.FC<TodoModalProps> = ({
     if (!validateForm()) return;
 
     if (mode === 'create') {
-      addTodo(title.trim(), description.trim());
+      const normalized =
+        dueDate && !Number.isNaN(Date.parse(dueDate)) ? new Date(dueDate).toISOString() : undefined;
+      if (normalized) {
+        addTodo(title.trim(), description.trim(), normalized);
+      } else {
+        // Preserve backward-compatible signature when due date is not provided
+        addTodo(title.trim(), description.trim());
+      }
     } else if (mode === 'edit' && initialValues) {
+      const normalized =
+        dueDate && !Number.isNaN(Date.parse(dueDate)) ? new Date(dueDate).toISOString() : undefined;
       editTodo(initialValues.id, {
         title: title.trim(),
         description: description.trim(),
         completed,
+        ...(normalized ? { dueDate: normalized } : {}),
       });
     }
     onClose();
@@ -137,6 +151,17 @@ export const TodoModal: React.FC<TodoModalProps> = ({
                 label="Mark as completed"
               />
             )}
+            {/* Simple due date input to avoid adding dependencies in this step */}
+            <TextField
+              label="Due date (YYYY-MM-DD)"
+              value={dueDate ?? ''}
+              onChange={e => setDueDate(e.target.value || undefined)}
+              placeholder="2025-12-31"
+              fullWidth
+              inputProps={
+                { 'data-testid': 'due-date-input' } as React.InputHTMLAttributes<HTMLInputElement>
+              }
+            />
           </Box>
         </DialogContent>
         <DialogActions>

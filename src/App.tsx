@@ -7,6 +7,7 @@ import { Footer } from './components/Layout/Footer';
 import { TodoList } from './components/TodoList/TodoList';
 import { CreateTodoButton } from './components/CreateTodoButton/CreateTodoButton';
 import type { Todo } from './types/Todo';
+// Note: If MUI X Date Pickers are added later, wrap with LocalizationProvider here
 
 function App() {
   const handleEditTodo = (todo: Todo) => {

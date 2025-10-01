@@ -11,6 +11,9 @@ interface TodoItemProps {
 export const TodoItem: React.FC<TodoItemProps> = ({ todo, onEditClick }) => {
   const { toggleTodoCompletion, deleteTodo } = useTodo();
 
+  const hasDueDate = Boolean(todo.dueDate && !Number.isNaN(Date.parse(todo.dueDate)));
+  const isOverdue = hasDueDate && !todo.completed && new Date(todo.dueDate as string) < new Date();
+
   return (
     <>
       <ListItem
@@ -62,15 +65,29 @@ export const TodoItem: React.FC<TodoItemProps> = ({ todo, onEditClick }) => {
             </Typography>
           }
           secondary={
-            <Typography
-              variant="body2"
-              sx={{
-                color: 'text.secondary',
-                textDecoration: todo.completed ? 'line-through' : 'none',
-              }}
-            >
-              {todo.description}
-            </Typography>
+            <>
+              <Typography
+                variant="body2"
+                sx={{
+                  color: 'text.secondary',
+                  textDecoration: todo.completed ? 'line-through' : 'none',
+                }}
+              >
+                {todo.description}
+              </Typography>
+              {hasDueDate && (
+                <Typography
+                  variant="caption"
+                  sx={{
+                    mt: 0.5,
+                    display: 'block',
+                    color: isOverdue ? 'error.main' : 'text.secondary',
+                  }}
+                >
+                  Due: {new Date(todo.dueDate as string).toLocaleDateString()}
+                </Typography>
+              )}
+            </>
           }
         />
       </ListItem>
